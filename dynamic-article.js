@@ -1,10 +1,20 @@
 
-import { getArticleById, getRelatedArticles } from './notion-api.js';
-
 // URLパラメータから記事IDを取得
 function getArticleIdFromUrl() {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get('id') || 'default-article-id';
+}
+
+// APIエンドポイントからデータを取得
+async function fetchFromAPI(endpoint) {
+  const response = await fetch(endpoint);
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.message || `API Error: ${response.status}`);
+  }
+  
+  return await response.json();
 }
 
 // 記事データをページに反映
@@ -19,8 +29,8 @@ async function loadArticle() {
     if (errorContainer) errorContainer.style.display = 'none';
     
     // 記事データを取得
-    const article = await getArticleById(articleId);
-    const relatedArticles = await getRelatedArticles(articleId);
+    const article = await fetchFromAPI(`/api/articles/${articleId}`);
+    const relatedArticles = await fetchFromAPI(`/api/articles/${articleId}/related`);
     
     // ページタイトルを更新
     document.title = `${article.title} - ととのう養生帖`;
@@ -69,7 +79,8 @@ async function loadArticle() {
       errorContainer.innerHTML = `
         <div class="error-message">
           <h2>記事の読み込みに失敗しました</h2>
-          <p>記事が見つからないか、一時的なエラーが発生しています。</p>
+          <p>${error.message}</p>
+          <p>Notion APIの設定を確認してください。</p>
           <a href="index.html" class="back-btn">トップページに戻る</a>
         </div>
       `;
