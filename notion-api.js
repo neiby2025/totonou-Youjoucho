@@ -1,14 +1,14 @@
 
 import { Client } from '@notionhq/client';
+import { config } from './config.js';
 
 // Notion APIクライアントの初期化
-// 実際の使用時は環境変数から取得してください
 const notion = new Client({
-  auth: process.env.NOTION_TOKEN || 'your_notion_token_here'
+  auth: config.NOTION_TOKEN
 });
 
-// データベースID（実際の使用時は環境変数から取得）
-const DATABASE_ID = process.env.NOTION_DATABASE_ID || 'your_database_id_here';
+// データベースID
+const DATABASE_ID = config.NOTION_DATABASE_ID;
 
 // Notionのリッチテキストを HTML に変換
 function richTextToHtml(richText) {
