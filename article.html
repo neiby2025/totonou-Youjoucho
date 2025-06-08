@@ -1,10 +1,9 @@
-
 <!doctype html>
 <html lang="ja">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>春の養生法：肝の気を整える - ととのう養生帖</title>
+    <title>記事読み込み中... - ととのう養生帖</title>
     <link href="style.css" rel="stylesheet" type="text/css" />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600&family=Zen+Kaku+Gothic+New:wght@300;400;500&display=swap" rel="stylesheet">
   </head>
@@ -25,133 +24,33 @@
         </div>
       </nav>
 
-      <article class="article-page">
+      <!-- ローディング表示 -->
+      <div id="loading" class="loading-container">
+        <div class="loading-content">
+          <div class="loading-spinner"></div>
+          <p>記事を読み込んでいます...</p>
+        </div>
+      </div>
+
+      <!-- エラー表示 -->
+      <div id="error-container" class="error-container" style="display: none;">
+        <!-- エラーメッセージはJavaScriptで動的に挿入 -->
+      </div>
+
+      <!-- 記事コンテンツ -->
+      <article id="article-container" class="article-page" style="display: none;">
         <header class="article-header">
           <div class="article-meta">
-            <span class="article-category">季節の養生</span>
-            <time class="article-date">2024.03.15</time>
+            <span id="article-category" class="article-category">読み込み中...</span>
+            <time id="article-date" class="article-date">読み込み中...</time>
           </div>
-          <h1 class="article-title">春の養生法：肝の気を整える</h1>
+          <h1 id="article-title" class="article-title">記事を読み込んでいます...</h1>
           <div class="article-image-hero"></div>
         </header>
 
         <div class="article-content">
-          <div class="article-intro">
-            <p>春は陽気が徐々に上昇し、万物が芽吹く季節です。東洋医学では、春は「肝」の季節とされ、肝の気を整えることが健康維持の要となります。</p>
-          </div>
-
-          <section class="content-section">
-            <h2>春と肝の関係</h2>
-            <p>東洋医学において、春は五行の「木」に属し、肝臓と密接な関係があります。肝は血液の貯蔵、解毒、気の疏泄（そせつ）を司る重要な臓器です。</p>
-            
-            <div class="classic-quote">
-              <blockquote>
-                「春三月、此謂發陳。天地俱生、萬物以榮」<br>
-                <cite>— 黄帝内経 素問</cite>
-              </blockquote>
-              <div class="quote-explanation">
-                <p>春の三ヶ月は、古いものを発散させ新しいものを生み出す時期。天地ともに生気に満ち、万物が栄える季節です。</p>
-              </div>
-            </div>
-
-            <p>この古典の教えが示すように、春は生命力が溢れる季節であり、私たちの体もこの自然のリズムに合わせて調整していく必要があります。</p>
-          </section>
-
-          <section class="content-section">
-            <h2>肝の気を整える養生法</h2>
-            
-            <h3>1. 食養生</h3>
-            <p>春の食養生では、肝の働きを助ける食材を積極的に取り入れましょう。</p>
-            
-            <div class="food-list">
-              <div class="food-item">
-                <h4>緑黄色野菜</h4>
-                <p>ほうれん草、小松菜、菜の花など。肝の解毒機能をサポートします。</p>
-              </div>
-              <div class="food-item">
-                <h4>酸味のある食材</h4>
-                <p>レモン、梅、酢など。肝の気を収斂し、バランスを整えます。</p>
-              </div>
-              <div class="food-item">
-                <h4>香りの良い野菜</h4>
-                <p>セロリ、三つ葉、春菊など。気の流れを促進します。</p>
-              </div>
-            </div>
-
-            <h3>2. 運動と呼吸法</h3>
-            <p>春は適度な運動で気血の流れを促すことが大切です。激しい運動よりも、ゆったりとした動きを心がけましょう。</p>
-            
-            <ul class="exercise-list">
-              <li>朝の散歩やウォーキング</li>
-              <li>太極拳や気功</li>
-              <li>ヨガやストレッチ</li>
-              <li>深呼吸法（腹式呼吸）</li>
-            </ul>
-
-            <h3>3. 感情の調整</h3>
-            <p>肝は感情の「怒り」と関係が深いとされています。春は新しい環境や変化に対するストレスが増えやすい季節でもあります。</p>
-            
-            <div class="emotion-tips">
-              <div class="tip">
-                <h4>リラックス法</h4>
-                <p>深呼吸、瞑想、アロマテラピーなどでリラックスを心がけましょう。</p>
-              </div>
-              <div class="tip">
-                <h4>規則正しい生活</h4>
-                <p>早寝早起きを心がけ、自然のリズムに合わせた生活を送りましょう。</p>
-              </div>
-            </div>
-          </section>
-
-          <section class="content-section">
-            <h2>春の一日の過ごし方</h2>
-            
-            <div class="daily-schedule">
-              <div class="time-block">
-                <h4>朝（6:00-9:00）</h4>
-                <p>早起きして朝日を浴び、軽い運動や散歩を行う。朝食には緑黄色野菜を取り入れる。</p>
-              </div>
-              <div class="time-block">
-                <h4>昼（12:00-13:00）</h4>
-                <p>バランスの取れた昼食を摂り、少し休息を取る。午後の活動に備える。</p>
-              </div>
-              <div class="time-block">
-                <h4>夕方（18:00-19:00）</h4>
-                <p>軽めの夕食を心がけ、消化に良い食材を選ぶ。</p>
-              </div>
-              <div class="time-block">
-                <h4>夜（21:00-22:00）</h4>
-                <p>リラックスタイムを設け、質の良い睡眠の準備をする。</p>
-              </div>
-            </div>
-          </section>
-
-          <section class="content-section">
-            <h2>注意すべきポイント</h2>
-            
-            <div class="warning-box">
-              <h4>避けるべきこと</h4>
-              <ul>
-                <li>過度な飲酒（肝に負担をかける）</li>
-                <li>油っこい食事の摂りすぎ</li>
-                <li>夜更かしや不規則な生活</li>
-                <li>過度なストレスや怒り</li>
-              </ul>
-            </div>
-          </section>
-
-          <div class="article-conclusion">
-            <div class="classic-quote">
-              <blockquote>
-                「夜臥早起、廣步於庭」<br>
-                <cite>— 黄帝内経 素問</cite>
-              </blockquote>
-              <div class="quote-explanation">
-                <p>夜は早く寝て朝は早く起き、庭を広く歩き回りなさい。春の養生の基本を表した言葉です。</p>
-              </div>
-            </div>
-            
-            <p>春の養生は、自然のリズムに合わせて肝の気を整えることが基本です。日々の生活に少しずつ取り入れて、健やかな春を過ごしましょう。</p>
+          <div class="dynamic-content">
+            <!-- Notionから取得したコンテンツがここに挿入されます -->
           </div>
         </div>
 
@@ -159,24 +58,19 @@
           <div class="related-articles">
             <h3>関連記事</h3>
             <div class="related-list">
-              <div class="related-item">
-                <h4>肝と感情の関係について</h4>
-                <span class="related-category">感情と気のめぐり</span>
-              </div>
-              <div class="related-item">
-                <h4>春の薬膳レシピ</h4>
-                <span class="related-category">食養生</span>
-              </div>
-              <div class="related-item">
-                <h4>気功で肝の気を整える</h4>
-                <span class="related-category">季節の養生</span>
-              </div>
+              <!-- 関連記事がJavaScriptで動的に挿入されます -->
+              <div class="loading-related">関連記事を読み込み中...</div>
             </div>
           </div>
 
           <div class="seasonal-tip">
             <h3>今日の養生ポイント</h3>
-            <p>朝起きたら窓を開けて新鮮な空気を取り入れ、深呼吸をしてみましょう。春の気を体に取り込むことで、一日を健やかに始められます。</p>
+            <p>養生ポイントを読み込み中...</p>
+          </div>
+
+          <!-- キーワードタグ -->
+          <div id="keywords-container">
+            <!-- キーワードがJavaScriptで動的に挿入されます -->
           </div>
         </aside>
       </article>
@@ -198,5 +92,6 @@
     </main>
 
     <script src="script.js"></script>
+    <script type="module" src="dynamic-article.js"></script>
   </body>
 </html>
