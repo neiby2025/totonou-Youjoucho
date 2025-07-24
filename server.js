@@ -1,10 +1,9 @@
-
 import express from 'express';
-import { Client } from '@notionhq/client';
 import cors from 'cors';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import fs from 'fs';
+import path from 'path';
+import matter from 'gray-matter';
+import { marked } from 'marked';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -16,148 +15,69 @@ app.use(express.json());
 // 静的ファイル配信
 app.use(express.static('.'));
 
-// Notion APIクライアント初期化
-const notion = new Client({
-  auth: process.env.NOTION_TOKEN
-});
+// contentディレクトリのパス
+const CONTENT_DIR = './content';
 
-const DATABASE_ID = process.env.NOTION_DATABASE_ID;
-
-// Notionのリッチテキストを HTML に変換
-function richTextToHtml(richText) {
-  if (!richText || !Array.isArray(richText)) return '';
-  
-  return richText.map(text => {
-    let content = text.plain_text;
-    
-    if (text.annotations.bold) content = `<strong>${content}</strong>`;
-    if (text.annotations.italic) content = `<em>${content}</em>`;
-    if (text.annotations.underline) content = `<u>${content}</u>`;
-    if (text.annotations.strikethrough) content = `<s>${content}</s>`;
-    if (text.annotations.code) content = `<code>${content}</code>`;
-    if (text.href) content = `<a href="${text.href}" target="_blank">${content}</a>`;
-    
-    return content;
-  }).join('');
+// Markdownファイルの一覧を取得
+function getMarkdownFiles() {
+  if (!fs.existsSync(CONTENT_DIR)) {
+    return [];
+  }
+  return fs.readdirSync(CONTENT_DIR).filter(file => file.endsWith('.md'));
 }
 
-// Notionブロックを HTML に変換
-function blockToHtml(block) {
-  const { type } = block;
-  
-  switch (type) {
-    case 'paragraph':
-      return `<p>${richTextToHtml(block.paragraph.rich_text)}</p>`;
-      
-    case 'heading_1':
-      return `<h1>${richTextToHtml(block.heading_1.rich_text)}</h1>`;
-      
-    case 'heading_2':
-      return `<h2>${richTextToHtml(block.heading_2.rich_text)}</h2>`;
-      
-    case 'heading_3':
-      return `<h3>${richTextToHtml(block.heading_3.rich_text)}</h3>`;
-      
-    case 'bulleted_list_item':
-      return `<li>${richTextToHtml(block.bulleted_list_item.rich_text)}</li>`;
-      
-    case 'numbered_list_item':
-      return `<li>${richTextToHtml(block.numbered_list_item.rich_text)}</li>`;
-      
-    case 'quote':
-      return `<blockquote class="notion-quote">${richTextToHtml(block.quote.rich_text)}</blockquote>`;
-      
-    case 'callout':
-      const icon = block.callout.icon?.emoji || '💡';
-      return `<div class="notion-callout">
-        <div class="callout-icon">${icon}</div>
-        <div class="callout-content">${richTextToHtml(block.callout.rich_text)}</div>
-      </div>`;
-      
-    case 'divider':
-      return '<hr class="notion-divider">';
-      
-    case 'code':
-      const language = block.code.language || '';
-      return `<pre class="notion-code ${language}"><code>${block.code.rich_text[0]?.plain_text || ''}</code></pre>`;
-      
-    default:
-      return `<p>${richTextToHtml(block[type]?.rich_text || [])}</p>`;
-  }
+// Markdownファイルを読み込んでパース
+function parseMarkdownFile(filename) {
+  const filePath = path.join(CONTENT_DIR, filename);
+  const fileContent = fs.readFileSync(filePath, 'utf-8');
+  const { data: frontmatter, content } = matter(fileContent);
+
+  return {
+    id: frontmatter.id || path.basename(filename, '.md'),
+    title: frontmatter.title || '',
+    category: frontmatter.category || '',
+    publishDate: frontmatter.publishDate || '',
+    thumbnailUrl: frontmatter.thumbnailUrl || '',
+    keywords: frontmatter.keywords || [],
+    tips: frontmatter.tips || '',
+    content: content,
+    contentHtml: marked(content)
+  };
 }
 
 // 記事取得API
 app.get('/api/articles/:id', async (req, res) => {
   try {
-    const pageId = req.params.id;
-    
-    // ページ情報を取得
-    const page = await notion.pages.retrieve({ page_id: pageId });
-    
-    // ページの子ブロックを取得
-    const blocks = await notion.blocks.children.list({
-      block_id: pageId,
-      page_size: 100
-    });
-    
-    // プロパティから基本情報を抽出
-    const properties = page.properties;
-    const title = properties.タイトル?.title?.[0]?.plain_text || '';
-    const category = properties.カテゴリ?.select?.name || '';
-    const publishDate = properties.公開日?.date?.start || '';
-    const thumbnailUrl = properties.サムネイルURL?.files?.[0]?.file?.url || properties.サムネイルURL?.url || '';
-    const keywords = properties.キーワード?.multi_select?.map(item => item.name) || [];
-    const tips = properties.養生ポイント?.rich_text?.[0]?.plain_text || '';
-    
-    // ブロックをHTMLに変換
-    let contentHtml = '';
-    let currentList = null;
-    let listItems = [];
-    
-    blocks.results.forEach(block => {
-      if (block.type === 'bulleted_list_item') {
-        if (currentList !== 'ul') {
-          if (currentList) {
-            contentHtml += `</${currentList}>\n`;
-          }
-          contentHtml += '<ul class="notion-list">\n';
-          currentList = 'ul';
-        }
-        listItems.push(blockToHtml(block));
-      } else if (block.type === 'numbered_list_item') {
-        if (currentList !== 'ol') {
-          if (currentList) {
-            contentHtml += `</${currentList}>\n`;
-          }
-          contentHtml += '<ol class="notion-list">\n';
-          currentList = 'ol';
-        }
-        listItems.push(blockToHtml(block));
-      } else {
-        if (currentList) {
-          contentHtml += listItems.join('\n') + `\n</${currentList}>\n`;
-          currentList = null;
-          listItems = [];
-        }
-        contentHtml += blockToHtml(block) + '\n';
+    const articleId = req.params.id;
+    const markdownFiles = getMarkdownFiles();
+
+    // IDに一致する記事を探す
+    let article = null;
+    for (const filename of markdownFiles) {
+      const parsedArticle = parseMarkdownFile(filename);
+      if (parsedArticle.id === articleId) {
+        article = parsedArticle;
+        break;
       }
-    });
-    
-    // 最後のリストを閉じる
-    if (currentList) {
-      contentHtml += listItems.join('\n') + `\n</${currentList}>\n`;
     }
-    
+
+    if (!article) {
+      return res.status(404).json({ 
+        error: 'Article not found',
+        message: `記事ID "${articleId}" が見つかりません` 
+      });
+    }
+
     res.json({
-      title,
-      category,
-      publishDate,
-      thumbnailUrl,
-      contentHtml,
-      keywords,
-      tips
+      title: article.title,
+      category: article.category,
+      publishDate: article.publishDate,
+      thumbnailUrl: article.thumbnailUrl,
+      contentHtml: article.contentHtml,
+      keywords: article.keywords,
+      tips: article.tips
     });
-    
+
   } catch (error) {
     console.error('Error fetching article:', error);
     res.status(500).json({ 
@@ -170,32 +90,25 @@ app.get('/api/articles/:id', async (req, res) => {
 // 関連記事取得API
 app.get('/api/articles/:id/related', async (req, res) => {
   try {
-    const currentPageId = req.params.id;
+    const currentArticleId = req.params.id;
     const limit = parseInt(req.query.limit) || 3;
-    
-    const response = await notion.databases.query({
-      database_id: DATABASE_ID,
-      page_size: limit + 1,
-      sorts: [
-        {
-          property: '公開日',
-          direction: 'descending'
-        }
-      ]
-    });
-    
-    const relatedArticles = response.results
-      .filter(page => page.id !== currentPageId)
-      .slice(0, limit)
-      .map(page => ({
-        id: page.id,
-        title: page.properties.タイトル?.title?.[0]?.plain_text || '',
-        category: page.properties.カテゴリ?.select?.name || '',
-        publishDate: page.properties.公開日?.date?.start || ''
-      }));
-      
+    const markdownFiles = getMarkdownFiles();
+
+    const allArticles = markdownFiles
+      .map(filename => parseMarkdownFile(filename))
+      .filter(article => article.id !== currentArticleId)
+      .sort((a, b) => new Date(b.publishDate) - new Date(a.publishDate))
+      .slice(0, limit);
+
+    const relatedArticles = allArticles.map(article => ({
+      id: article.id,
+      title: article.title,
+      category: article.category,
+      publishDate: article.publishDate
+    }));
+
     res.json(relatedArticles);
-    
+
   } catch (error) {
     console.error('Error fetching related articles:', error);
     res.status(500).json({ 
@@ -209,28 +122,22 @@ app.get('/api/articles/:id/related', async (req, res) => {
 app.get('/api/articles', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
-    
-    const response = await notion.databases.query({
-      database_id: DATABASE_ID,
-      page_size: limit,
-      sorts: [
-        {
-          property: '公開日',
-          direction: 'descending'
-        }
-      ]
-    });
-    
-    const articles = response.results.map(page => ({
-      id: page.id,
-      title: page.properties.タイトル?.title?.[0]?.plain_text || '',
-      category: page.properties.カテゴリ?.select?.name || '',
-      publishDate: page.properties.公開日?.date?.start || '',
-      thumbnailUrl: page.properties.サムネイルURL?.files?.[0]?.file?.url || page.properties.サムネイルURL?.url || ''
-    }));
-    
+    const markdownFiles = getMarkdownFiles();
+
+    const articles = markdownFiles
+      .map(filename => parseMarkdownFile(filename))
+      .sort((a, b) => new Date(b.publishDate) - new Date(a.publishDate))
+      .slice(0, limit)
+      .map(article => ({
+        id: article.id,
+        title: article.title,
+        category: article.category,
+        publishDate: article.publishDate,
+        thumbnailUrl: article.thumbnailUrl
+      }));
+
     res.json(articles);
-    
+
   } catch (error) {
     console.error('Error fetching articles:', error);
     res.status(500).json({ 
