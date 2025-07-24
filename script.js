@@ -75,8 +75,81 @@ function addSeasonalGreeting() {
   }
 }
 
-// Initialize seasonal greeting
-document.addEventListener('DOMContentLoaded', addSeasonalGreeting);
+// 最新記事を取得して表示
+async function loadLatestArticles() {
+  const container = document.getElementById('latest-articles-container');
+  if (!container) return;
+
+  try {
+    const response = await fetch('/api/articles?limit=3');
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
+    }
+
+    const articles = await response.json();
+    
+    if (articles.length === 0) {
+      container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">記事が見つかりませんでした。</p>';
+      return;
+    }
+
+    const articlesHtml = articles.map(article => `
+      <article class="article-card">
+        <div class="article-image" style="${article.thumbnailUrl ? `background-image: url(${article.thumbnailUrl}); background-size: cover; background-position: center;` : ''}"></div>
+        <div class="article-content">
+          <span class="article-category">${article.category || 'カテゴリなし'}</span>
+          <h4 class="article-title">
+            <a href="article.html?id=${article.id}">${article.title || '無題'}</a>
+          </h4>
+          <p class="article-excerpt">${generateExcerpt(article.title, article.category)}</p>
+          <time class="article-date">${formatArticleDate(article.publishDate)}</time>
+        </div>
+      </article>
+    `).join('');
+
+    container.innerHTML = articlesHtml;
+
+  } catch (error) {
+    console.error('記事の読み込みに失敗しました:', error);
+    container.innerHTML = `
+      <div class="error-message" style="text-align: center; padding: 2rem;">
+        <p style="color: var(--text-secondary);">記事の読み込みに失敗しました。</p>
+        <p style="color: var(--text-light); font-size: 0.9rem;">${error.message}</p>
+      </div>
+    `;
+  }
+}
+
+// 記事の要約を生成（タイトルとカテゴリから）
+function generateExcerpt(title, category) {
+  const excerpts = {
+    '季節の養生': '季節に合わせた養生法で、自然のリズムに調和した健康管理を...',
+    '食養生': '薬膳の知恵を活かした食事で、体の内側から健康をサポート...',
+    '感情と気のめぐり': '東洋医学の視点から、心と体のバランスを整える方法を...'
+  };
+  
+  return excerpts[category] || '東洋医学の知恵を現代の生活に活かす養生法をご紹介...';
+}
+
+// 日付フォーマット関数
+function formatArticleDate(dateString) {
+  if (!dateString) return '';
+  
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return '';
+  
+  return date.toLocaleDateString('ja-JP', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).replace(/\//g, '.');
+}
+
+// Initialize seasonal greeting and load articles
+document.addEventListener('DOMContentLoaded', function() {
+  addSeasonalGreeting();
+  loadLatestArticles();
+});
 
 // Simple parallax effect for hero section
 window.addEventListener('scroll', function() {
